@@ -195,20 +195,14 @@
       border-radius: 10px;
       background: linear-gradient(135deg, #1a1400 0%, #2a1f00 100%);
       border: 1px solid #FFD70033;
-      padding: 16px 32px;
-    }
-
-    .gold-inner {
-      display: flex;
-      align-items: center;
-      gap: 40px;
+      padding: 20px 24px;
     }
 
     .gold-header {
       display: flex;
       align-items: center;
       gap: 10px;
-      flex-shrink: 0;
+      margin-bottom: 12px;
     }
 
     .gold-icon {
@@ -224,18 +218,16 @@
 
     #gold-container {
       display: flex;
-      flex: 1;
-      gap: 48px;
+      flex-direction: column;
     }
 
     .gold-card {
-      display: flex;
+      display: grid;
+      grid-template-columns: 21% 1fr 1fr;
       align-items: center;
-      gap: 32px;
-      padding: 8px 0;
+      padding: 10px 24px;
       border-radius: 8px;
       transition: background-color 0.5s ease;
-      flex: 1;
     }
 
     .gold-card.highlight {
@@ -245,17 +237,16 @@
     .gold-name {
       display: flex;
       flex-direction: column;
-      min-width: 200px;
     }
 
     .gold-name-en {
-      font-size: 20px;
+      font-size: 24px;
       font-weight: 700;
       color: #FFD700;
     }
 
     .gold-name-fa {
-      font-size: 16px;
+      font-size: 18px;
       color: #9CA3AF;
       direction: rtl;
       text-align: left;
@@ -269,7 +260,7 @@
     }
 
     .gold-label {
-      font-size: 14px;
+      font-size: 16px;
       color: #9CA3AF;
       text-transform: uppercase;
       letter-spacing: 1px;
@@ -277,7 +268,7 @@
     }
 
     .gold-price {
-      font-size: 36px;
+      font-size: 40px;
       font-weight: 800;
       color: #ffffff;
       line-height: 1.2;
@@ -285,11 +276,11 @@
 
     .gold-price.call {
       color: #F5A623;
-      font-size: 32px;
+      font-size: 36px;
     }
 
     .gold-price-unit {
-      font-size: 14px;
+      font-size: 16px;
       color: #9CA3AF;
       font-weight: 600;
     }
@@ -354,13 +345,11 @@
 
   <!-- Gold -->
   <div id="gold-section" class="gold-section" style="display:none;">
-    <div class="gold-inner">
-      <div class="gold-header">
-        <span class="gold-icon">🥇</span>
-        <span class="gold-title">Gold Prices</span>
-      </div>
-      <div id="gold-container"></div>
+    <div class="gold-header">
+      <span class="gold-icon">🥇</span>
+      <span class="gold-title">Gold Prices</span>
     </div>
+    <div id="gold-container"></div>
   </div>
 
   <!-- Footer -->
