@@ -406,8 +406,9 @@ function formatNumber(value) {
 
   const str = value.toString().replace(/,/g, '');
   if (str.includes('.')) {
-    // Has decimals: limit to 2 decimal places, add commas to integer part
-    const fixed = num.toFixed(2);
+    // Has decimals: truncate to 2 decimal places (always round down)
+    const truncated = Math.floor(num * 100) / 100;
+    const fixed = truncated.toFixed(2);
     const parts = fixed.split('.');
     parts[0] = parseInt(parts[0], 10).toLocaleString('en-US');
     return parts.join('.');
