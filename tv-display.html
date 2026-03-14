@@ -380,20 +380,14 @@ const MOCK_GOLD = {
 // ─── Helpers ───
 
 function formatNumber(value) {
-  // If not a real number, return as-is
   const num = parseFloat(value);
   if (isNaN(num)) return value;
 
-  // Check if it's a decimal number (like 1.344) vs a large integer (like 102000)
-  const str = value.toString().replace(/,/g, '');
-  if (str.includes('.')) {
-    // Decimal: keep original precision, add commas to integer part
-    const parts = str.split('.');
-    parts[0] = parseInt(parts[0], 10).toLocaleString('en-US');
-    return parts.join('.');
-  }
-  // Integer: add commas
-  return parseInt(str, 10).toLocaleString('en-US');
+  // Format to exactly 2 decimal places, add commas to integer part
+  const fixed = num.toFixed(2);
+  const parts = fixed.split('.');
+  parts[0] = parseInt(parts[0], 10).toLocaleString('en-US');
+  return parts.join('.');
 }
 
 function displayUnit(priceUnit) {
@@ -455,12 +449,12 @@ function renderRates(data) {
 
     let buyHtml, sellHtml;
     if (card.show_contact_buy) {
-      buyHtml = `<span class="price-call">Contact Us</span>`;
+      buyHtml = `<span class="price-call">Ask Us</span>`;
     } else {
       buyHtml = `<span class="price-value">${formatNumber(card.buy_price)}</span><span class="price-unit">${unit}</span>`;
     }
     if (card.show_contact_sell) {
-      sellHtml = `<span class="price-call">Contact Us</span>`;
+      sellHtml = `<span class="price-call">Ask Us</span>`;
     } else {
       sellHtml = `<span class="price-value">${formatNumber(card.sell_price)}</span><span class="price-unit">${unit}</span>`;
     }
@@ -530,7 +524,7 @@ function renderGold(data) {
     let buyHtml, sellHtml;
 
     if (card.show_contact_buy) {
-      buyHtml = `<span class="gold-label">Buy</span><span class="gold-price call">Contact Us</span>`;
+      buyHtml = `<span class="gold-label">Buy</span><span class="gold-price call">Ask Us</span>`;
     } else if (isZero(card.buy)) {
       buyHtml = `<span class="gold-label">Buy</span><span class="gold-price">—</span>`;
     } else {
@@ -538,7 +532,7 @@ function renderGold(data) {
     }
 
     if (card.show_contact_sell) {
-      sellHtml = `<span class="gold-label">Sell</span><span class="gold-price call">Contact Us</span>`;
+      sellHtml = `<span class="gold-label">Sell</span><span class="gold-price call">Ask Us</span>`;
     } else if (isZero(card.sell)) {
       sellHtml = `<span class="gold-label">Sell</span><span class="gold-price">—</span>`;
     } else {
