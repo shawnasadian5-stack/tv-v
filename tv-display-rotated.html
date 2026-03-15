@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Norex Exchange — Live Rates (Rotated)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: #FDFBF7;
+      color: #0a1628;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      margin: 0;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Rotated wrapper: portrait content on landscape screen */
+    .rotate-wrapper {
+      width: 100vh;
+      height: 100vw;
+      transform: rotate(90deg);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ── */
+    .header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 48px 40px 28px;
+      flex-shrink: 0;
+    }
+
+    .header-logo {
+      width: 180px;
+      height: 180px;
+      object-fit: contain;
+      margin-bottom: 16px;
+    }
+
+    .header-title {
+      font-size: 52px;
+      font-weight: 800;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #0a1628;
+    }
+
+    .header-subtitle {
+      font-size: 38px;
+      font-weight: 600;
+      color: #4A5568;
+      margin-top: 4px;
+      direction: rtl;
+    }
+
+    .header-accent {
+      width: 400px;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #B8860B, transparent);
+      margin-top: 24px;
+      border-radius: 2px;
+    }
+
+    /* ── Table Header ── */
+    .table-header {
+      display: grid;
+      grid-template-columns: 280px 1fr 1fr;
+      align-items: center;
+      padding: 16px 48px;
+      flex-shrink: 0;
+    }
+
+    .table-header span {
+      font-size: 22px;
+      font-weight: 700;
+      color: #7A8599;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .table-header span:not(:first-child) {
+      text-align: center;
+    }
+
+    /* ── Rates Container ── */
+    #rates-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 0 24px;
+    }
+
+    /* ── Rate Card ── */
+    .rate-card {
+      display: grid;
+      grid-template-columns: 280px 1fr 1fr;
+      align-items: center;
+      padding: 24px 24px;
+      border-radius: 10px;
+      transition: background-color 0.5s ease;
+    }
+
+    .rate-card.even {
+      background: #F3EDE0;
+    }
+
+    .rate-card.odd {
+      background: #FDFBF7;
+    }
+
+    .rate-card.highlight {
+      background: #E8F5E9 !important;
+    }
+
+    .currency-info {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .currency-flag {
+      font-size: 48px;
+      line-height: 1;
+      min-width: 56px;
+      text-align: center;
+    }
+
+    .currency-details {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .currency-code {
+      font-size: 40px;
+      font-weight: 800;
+      color: #0a1628;
+      line-height: 1.1;
+    }
+
+    .currency-name {
+      font-size: 18px;
+      color: #7A8599;
+      font-weight: 400;
+      margin-top: 2px;
+    }
+
+    .price-cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .price-value {
+      font-size: 64px;
+      font-weight: 800;
+      color: #0a1628;
+      line-height: 1.1;
+      transition: color 0.3s ease;
+    }
+
+    .price-unit {
+      font-size: 18px;
+      color: #7A8599;
+      font-weight: 600;
+      margin-top: 4px;
+    }
+
+    .price-call {
+      font-size: 48px;
+      font-weight: 700;
+      color: #B8860B;
+    }
+
+    /* ── Gold Section ── */
+    .gold-section {
+      flex-shrink: 0;
+      margin: 20px 24px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #FFF8E7 0%, #FFF0D0 100%);
+      border: 1px solid #B8860B33;
+      padding: 28px 32px;
+    }
+
+    .gold-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .gold-icon {
+      font-size: 36px;
+    }
+
+    .gold-title {
+      font-size: 32px;
+      font-weight: 700;
+      color: #8B6914;
+      letter-spacing: 1px;
+    }
+
+    .gold-card {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      align-items: center;
+      padding: 16px 0;
+      border-radius: 8px;
+      transition: background-color 0.5s ease;
+    }
+
+    .gold-card.highlight {
+      background: #FFF0C0 !important;
+    }
+
+    .gold-name {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .gold-name-en {
+      font-size: 26px;
+      font-weight: 700;
+      color: #8B6914;
+    }
+
+    .gold-name-fa {
+      font-size: 20px;
+      color: #7A8599;
+      direction: rtl;
+      margin-top: 2px;
+    }
+
+    .gold-price-cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .gold-label {
+      font-size: 18px;
+      color: #7A8599;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 600;
+    }
+
+    .gold-price {
+      font-size: 48px;
+      font-weight: 800;
+      color: #0a1628;
+      line-height: 1.2;
+    }
+
+    .gold-price.call {
+      color: #B8860B;
+      font-size: 40px;
+    }
+
+    .gold-price-unit {
+      font-size: 16px;
+      color: #7A8599;
+      font-weight: 600;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      flex-shrink: 0;
+      padding: 24px 40px 32px;
+      text-align: center;
+    }
+
+    .footer-updated {
+      font-size: 22px;
+      color: #7A8599;
+      margin-bottom: 12px;
+    }
+
+    .footer-contact {
+      font-size: 24px;
+      color: #0a1628;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .footer-address {
+      font-size: 20px;
+      color: #5A6577;
+      margin-bottom: 12px;
+    }
+
+    .footer-disclaimer {
+      font-size: 17px;
+      color: #7A8599;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="rotate-wrapper">
+
+  <!-- Header -->
+  <div class="header">
+    <img class="header-logo" src="https://norexexchange.ca/wp-content/uploads/2026/03/cropped-Untitled-design-39.png" alt="Norex Exchange Logo">
+    <div class="header-title">Norex Exchange</div>
+    <div class="header-subtitle">صرافی نورکس</div>
+    <div class="header-accent"></div>
+  </div>
+
+  <!-- Table Column Headers -->
+  <div class="table-header">
+    <span>Currency</span>
+    <span>Buy</span>
+    <span>Sell</span>
+  </div>
+
+  <!-- Rates -->
+  <div id="rates-container"></div>
+
+  <!-- Gold -->
+  <div id="gold-section" class="gold-section" style="display:none;">
+    <div class="gold-header">
+      <span class="gold-icon">🥇</span>
+      <span class="gold-title">Gold Prices</span>
+    </div>
+    <div id="gold-container"></div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="footer-updated" id="last-updated">Last updated: —</div>
+    <div class="footer-contact">📞 +1 (778) 918-1817</div>
+    <div class="footer-address">1061 Marine Drive, Suite 104, North Vancouver</div>
+    <div class="footer-disclaimer">Prices are subject to change. Contact us for live rates.</div>
+  </div>
+
+  </div><!-- end rotate-wrapper -->
+
+<script>
+// ─── Configuration ───
+const CONFIG = {
+  API_BASE: 'https://norexexchange.ca/wp-json/norex/v1',
+  REFRESH_INTERVAL_MS: 3600000, // 60 minutes
+  SHOW_CURRENCIES: null,        // null = show all; or ['CAD', 'USD', 'EUR'] to filter & order
+  SHOW_GOLD: true,
+  GOLD_ITEMS_TO_SHOW: ['Gold per Ounce (24K)'],
+  HIDE_ZERO_RATES: false,
+  TMN_DISPLAY: 'تومان',
+};
+
+// ─── Previous prices for change detection ───
+let prevRatePrices = {};
+let prevGoldPrices = {};
+
+// ─── Fallback mock data (real API structure) ───
+const MOCK_RATES = {
+  cards: [
+    { id: 1, currency_code: 'CAD', name_en: 'Canadian Dollar', name_fa: 'دلار کانادا', flag: '🇨🇦', buy_price: '102000', sell_price: '113000', show_contact_buy: false, show_contact_sell: false, price_unit: 'toman' },
+    { id: 2, currency_code: 'USD', name_en: 'US Dollar', name_fa: 'دلار آمریکا', flag: '🇺🇸', buy_price: '1.344', sell_price: '1.374', show_contact_buy: false, show_contact_sell: false, price_unit: 'cad' },
+    { id: 3, currency_code: 'EUR', name_en: 'Euro', name_fa: 'یورو', flag: '🇪🇺', buy_price: '1.55', sell_price: '1.6020', show_contact_buy: false, show_contact_sell: false, price_unit: 'cad' },
+    { id: 4, currency_code: 'GBP', name_en: 'British Pound', name_fa: 'پوند انگلیس', flag: '🇬🇧', buy_price: '0', sell_price: '0', show_contact_buy: true, show_contact_sell: true, price_unit: 'toman' },
+    { id: 5, currency_code: 'USDT', name_en: 'Tether', name_fa: 'تتر', flag: '', buy_price: '0', sell_price: '0', show_contact_buy: true, show_contact_sell: true, price_unit: 'cad' },
+  ],
+  updated: '2026-03-11 11:53:28'
+};
+
+const MOCK_GOLD = {
+  cards: [
+    { name_en: 'Gold per Ounce (24K)', name_fa: 'طلای ۲۴ عیار (اونس)', buy: '0', sell: '0', show_contact_buy: true, show_contact_sell: true },
+    { name_en: 'Gold per Gram (24K)', name_fa: 'طلای ۲۴ عیار (گرم)', buy: '0', sell: '0', show_contact_buy: true, show_contact_sell: true },
+    { name_en: 'Gold per Gram (18K)', name_fa: 'طلای ۱۸ عیار (گرم)', buy: '0', sell: '0', show_contact_buy: true, show_contact_sell: true },
+  ],
+  updated: '2026-03-10 10:07:47'
+};
+
+// ─── Helpers ───
+
+function formatNumber(value) {
+  const num = parseFloat(value);
+  if (isNaN(num)) return value;
+
+  const str = value.toString().replace(/,/g, '');
+  if (str.includes('.')) {
+    // Has decimals: truncate to 2 decimal places (always round down)
+    const truncated = Math.floor(num * 100) / 100;
+    const fixed = truncated.toFixed(2);
+    const parts = fixed.split('.');
+    parts[0] = parseInt(parts[0], 10).toLocaleString('en-US');
+    return parts.join('.');
+  }
+  // No decimals: just add commas
+  return parseInt(str, 10).toLocaleString('en-US');
+}
+
+function displayUnit(priceUnit) {
+  if (priceUnit === 'toman') return CONFIG.TMN_DISPLAY;
+  if (priceUnit === 'cad') return 'CAD';
+  return priceUnit ? priceUnit.toUpperCase() : '';
+}
+
+function isZero(val) {
+  if (!val) return true;
+  const n = parseFloat(val);
+  return !isNaN(n) && n === 0;
+}
+
+function isCall(val) {
+  return typeof val === 'string' && val.toLowerCase() === 'call';
+}
+
+function formatUpdated(timestamp) {
+  if (!timestamp) return '—';
+  // timestamp format: "2026-03-11 11:53:28"
+  try {
+    const d = new Date(timestamp.replace(' ', 'T'));
+    return d.toLocaleString('en-US', {
+      month: 'short', day: 'numeric', year: 'numeric',
+      hour: 'numeric', minute: '2-digit', hour12: true,
+    });
+  } catch {
+    return timestamp;
+  }
+}
+
+// ─── Render Rates ───
+
+function renderRates(data) {
+  const container = document.getElementById('rates-container');
+  let cards = data.cards || [];
+
+  // Filter zero rates
+  if (CONFIG.HIDE_ZERO_RATES) {
+    cards = cards.filter(c => !(isZero(c.buy_price) && isZero(c.sell_price)));
+  }
+
+  // Filter / order by SHOW_CURRENCIES
+  if (Array.isArray(CONFIG.SHOW_CURRENCIES)) {
+    const order = CONFIG.SHOW_CURRENCIES;
+    const map = {};
+    cards.forEach(c => { map[c.currency_code] = c; });
+    cards = order.map(code => map[code]).filter(Boolean);
+  }
+
+  container.innerHTML = '';
+
+  cards.forEach((card, i) => {
+    const el = document.createElement('div');
+    el.className = 'rate-card ' + (i % 2 === 0 ? 'even' : 'odd');
+
+    const unit = displayUnit(card.price_unit);
+
+    let buyHtml, sellHtml;
+    if (card.show_contact_buy) {
+      buyHtml = `<span class="price-call">Ask Us</span>`;
+    } else {
+      buyHtml = `<span class="price-value">${formatNumber(card.buy_price)}</span><span class="price-unit">${unit}</span>`;
+    }
+    if (card.show_contact_sell) {
+      sellHtml = `<span class="price-call">Ask Us</span>`;
+    } else {
+      sellHtml = `<span class="price-value">${formatNumber(card.sell_price)}</span><span class="price-unit">${unit}</span>`;
+    }
+
+    el.innerHTML = `
+      <div class="currency-info">
+        <span class="currency-flag">${card.flag || ''}</span>
+        <div class="currency-details">
+          <span class="currency-code">${card.currency_code}</span>
+          <span class="currency-name">${card.name_fa || card.name_en}</span>
+        </div>
+      </div>
+      <div class="price-cell">${buyHtml}</div>
+      <div class="price-cell">${sellHtml}</div>
+    `;
+
+    // Highlight animation if price changed
+    const key = card.currency_code;
+    const prevBuy = prevRatePrices[key + '_buy'];
+    const prevSell = prevRatePrices[key + '_sell'];
+    if (prevBuy !== undefined && (prevBuy !== card.buy_price || prevSell !== card.sell_price)) {
+      el.classList.add('highlight');
+      setTimeout(() => el.classList.remove('highlight'), 2000);
+    }
+    prevRatePrices[key + '_buy'] = card.buy_price;
+    prevRatePrices[key + '_sell'] = card.sell_price;
+
+    container.appendChild(el);
+  });
+
+  // Update timestamp
+  if (data.updated) {
+    document.getElementById('last-updated').textContent = 'Last updated: ' + formatUpdated(data.updated);
+  }
+}
+
+// ─── Render Gold ───
+
+function renderGold(data) {
+  const section = document.getElementById('gold-section');
+  const container = document.getElementById('gold-container');
+
+  if (!CONFIG.SHOW_GOLD) {
+    section.style.display = 'none';
+    return;
+  }
+
+  let cards = data.cards || [];
+
+  // Filter to configured items
+  if (Array.isArray(CONFIG.GOLD_ITEMS_TO_SHOW)) {
+    cards = cards.filter(c => CONFIG.GOLD_ITEMS_TO_SHOW.includes(c.name_en));
+  }
+
+  if (cards.length === 0) {
+    section.style.display = 'none';
+    return;
+  }
+
+  section.style.display = '';
+  container.innerHTML = '';
+
+  cards.forEach(card => {
+    const el = document.createElement('div');
+    el.className = 'gold-card';
+
+    let buyHtml, sellHtml;
+
+    if (card.show_contact_buy) {
+      buyHtml = `<span class="gold-label">Buy</span><span class="gold-price call">Ask Us</span>`;
+    } else if (isZero(card.buy)) {
+      buyHtml = `<span class="gold-label">Buy</span><span class="gold-price">—</span>`;
+    } else {
+      buyHtml = `<span class="gold-label">Buy</span><span class="gold-price">${formatNumber(card.buy)}</span><span class="gold-price-unit">CAD</span>`;
+    }
+
+    if (card.show_contact_sell) {
+      sellHtml = `<span class="gold-label">Sell</span><span class="gold-price call">Ask Us</span>`;
+    } else if (isZero(card.sell)) {
+      sellHtml = `<span class="gold-label">Sell</span><span class="gold-price">—</span>`;
+    } else {
+      sellHtml = `<span class="gold-label">Sell</span><span class="gold-price">${formatNumber(card.sell)}</span><span class="gold-price-unit">CAD</span>`;
+    }
+
+    el.innerHTML = `
+      <div class="gold-name">
+        <span class="gold-name-en">${card.name_en}</span>
+        <span class="gold-name-fa">${card.name_fa || ''}</span>
+      </div>
+      <div class="gold-price-cell">${buyHtml}</div>
+      <div class="gold-price-cell">${sellHtml}</div>
+    `;
+
+    // Highlight on change
+    const key = card.name_en;
+    const pBuy = prevGoldPrices[key + '_buy'];
+    const pSell = prevGoldPrices[key + '_sell'];
+    if (pBuy !== undefined && (pBuy !== card.buy || pSell !== card.sell)) {
+      el.classList.add('highlight');
+      setTimeout(() => el.classList.remove('highlight'), 2000);
+    }
+    prevGoldPrices[key + '_buy'] = card.buy;
+    prevGoldPrices[key + '_sell'] = card.sell;
+
+    container.appendChild(el);
+  });
+}
+
+// ─── Fetch Data ───
+// NOTE: CORS — these fetches will succeed when the HTML is served from the same
+// domain (norexexchange.ca) or if the API allows the requesting origin.
+// For local testing, use a CORS-disabling browser flag or a proxy.
+
+async function fetchRates() {
+  try {
+    const res = await fetch(CONFIG.API_BASE + '/rates');
+    const data = await res.json();
+    console.log('[Norex TV] Raw /rates response:', data);
+    renderRates(data);
+  } catch (err) {
+    console.error('[Norex TV] Failed to fetch rates, using last data or mock:', err);
+    // On first load with no prior data, use mock
+    if (document.getElementById('rates-container').children.length === 0) {
+      console.log('[Norex TV] Using mock rates data');
+      renderRates(MOCK_RATES);
+    }
+    // Otherwise keep whatever is on screen
+  }
+}
+
+async function fetchGold() {
+  try {
+    const res = await fetch(CONFIG.API_BASE + '/gold');
+    const data = await res.json();
+    console.log('[Norex TV] Raw /gold response:', data);
+    renderGold(data);
+  } catch (err) {
+    console.error('[Norex TV] Failed to fetch gold, using last data or mock:', err);
+    if (document.getElementById('gold-container').children.length === 0) {
+      console.log('[Norex TV] Using mock gold data');
+      renderGold(MOCK_GOLD);
+    }
+  }
+}
+
+async function refreshAll() {
+  await Promise.all([fetchRates(), fetchGold()]);
+}
+
+// ─── Init ───
+refreshAll();
+setInterval(refreshAll, CONFIG.REFRESH_INTERVAL_MS);
+</script>
+</body>
+</html>
