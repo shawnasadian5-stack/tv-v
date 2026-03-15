@@ -396,15 +396,20 @@ const MOCK_GOLD = {
 
 // ─── Helpers ───
 
-function formatNumber(value) {
+function formatNumber(value, direction) {
+  // direction: 'buy' = round down, 'sell' = round up
   const num = parseFloat(value);
   if (isNaN(num)) return value;
 
   const str = value.toString().replace(/,/g, '');
   if (str.includes('.')) {
-    // Has decimals: truncate to 2 decimal places (always round down)
-    const truncated = Math.floor(num * 100) / 100;
-    const fixed = truncated.toFixed(2);
+    let rounded;
+    if (direction === 'sell') {
+      rounded = Math.ceil(num * 1000) / 1000;
+    } else {
+      rounded = Math.floor(num * 1000) / 1000;
+    }
+    const fixed = rounded.toFixed(3);
     const parts = fixed.split('.');
     parts[0] = parseInt(parts[0], 10).toLocaleString('en-US');
     return parts.join('.');
@@ -474,12 +479,12 @@ function renderRates(data) {
     if (card.show_contact_buy) {
       buyHtml = `<span class="price-call">Ask Us</span>`;
     } else {
-      buyHtml = `<span class="price-value">${formatNumber(card.buy_price)}</span><span class="price-unit">${unit}</span>`;
+      buyHtml = `<span class="price-value">${formatNumber(card.buy_price, 'buy')}</span><span class="price-unit">${unit}</span>`;
     }
     if (card.show_contact_sell) {
       sellHtml = `<span class="price-call">Ask Us</span>`;
     } else {
-      sellHtml = `<span class="price-value">${formatNumber(card.sell_price)}</span><span class="price-unit">${unit}</span>`;
+      sellHtml = `<span class="price-value">${formatNumber(card.sell_price, 'sell')}</span><span class="price-unit">${unit}</span>`;
     }
 
     el.innerHTML = `
@@ -551,7 +556,7 @@ function renderGold(data) {
     } else if (isZero(card.buy)) {
       buyHtml = `<span class="gold-label">Buy</span><span class="gold-price">—</span>`;
     } else {
-      buyHtml = `<span class="gold-label">Buy</span><span class="gold-price">${formatNumber(card.buy)}</span><span class="gold-price-unit">CAD</span>`;
+      buyHtml = `<span class="gold-label">Buy</span><span class="gold-price">${formatNumber(card.buy, 'buy')}</span><span class="gold-price-unit">CAD</span>`;
     }
 
     if (card.show_contact_sell) {
@@ -559,7 +564,7 @@ function renderGold(data) {
     } else if (isZero(card.sell)) {
       sellHtml = `<span class="gold-label">Sell</span><span class="gold-price">—</span>`;
     } else {
-      sellHtml = `<span class="gold-label">Sell</span><span class="gold-price">${formatNumber(card.sell)}</span><span class="gold-price-unit">CAD</span>`;
+      sellHtml = `<span class="gold-label">Sell</span><span class="gold-price">${formatNumber(card.sell, 'sell')}</span><span class="gold-price-unit">CAD</span>`;
     }
 
     el.innerHTML = `
