@@ -187,6 +187,10 @@
       margin-top: 4px;
     }
 
+    .price-value.price-toman {
+      font-size: 68px;
+    }
+
     .price-call {
       font-size: 66px;
       font-weight: 700;
@@ -476,16 +480,17 @@ function renderRates(data) {
 
     const unit = displayUnit(card.price_unit);
 
+    const tomanClass = card.price_unit === 'toman' ? ' price-toman' : '';
     let buyHtml, sellHtml;
     if (card.show_contact_buy) {
       buyHtml = `<span class="price-call">Ask Us</span>`;
     } else {
-      buyHtml = `<span class="price-value">${formatNumber(card.buy_price, 'buy')}</span><span class="price-unit">${unit}</span>`;
+      buyHtml = `<span class="price-value${tomanClass}">${formatNumber(card.buy_price, 'buy')}</span><span class="price-unit">${unit}</span>`;
     }
     if (card.show_contact_sell) {
       sellHtml = `<span class="price-call">Ask Us</span>`;
     } else {
-      sellHtml = `<span class="price-value">${formatNumber(card.sell_price, 'sell')}</span><span class="price-unit">${unit}</span>`;
+      sellHtml = `<span class="price-value${tomanClass}">${formatNumber(card.sell_price, 'sell')}</span><span class="price-unit">${unit}</span>`;
     }
 
     el.innerHTML = `
