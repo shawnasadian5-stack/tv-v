@@ -366,7 +366,7 @@
 // ─── Configuration ───
 const CONFIG = {
   API_BASE: 'https://norexexchange.ca/wp-json/norex/v1',
-  REFRESH_INTERVAL_MS: 300000, // 5 minutes
+  REFRESH_INTERVAL_MS: 10000, // 10 seconds
   SHOW_CURRENCIES: null,        // null = show all; or ['CAD', 'USD', 'EUR'] to filter & order
   SHOW_GOLD: true,
   GOLD_ITEMS_TO_SHOW: ['1 ounce gold bar', '5 ounce gold bar'],
@@ -377,6 +377,8 @@ const CONFIG = {
 // ─── Previous prices for change detection ───
 let prevRatePrices = {};
 let prevGoldPrices = {};
+let lastRatesJson = '';
+let lastGoldJson = '';
 
 // ─── Fallback mock data (real API structure) ───
 const MOCK_RATES = {
@@ -606,16 +608,16 @@ async function fetchRates() {
   try {
     const res = await fetch(CONFIG.API_BASE + '/rates');
     const data = await res.json();
-    console.log('[Norex TV] Raw /rates response:', data);
+    const json = JSON.stringify(data);
+    if (json === lastRatesJson) return; // no change, skip render
+    lastRatesJson = json;
+    console.log('[Norex TV] Rates changed, updating display');
     renderRates(data);
   } catch (err) {
     console.error('[Norex TV] Failed to fetch rates, using last data or mock:', err);
-    // On first load with no prior data, use mock
     if (document.getElementById('rates-container').children.length === 0) {
-      console.log('[Norex TV] Using mock rates data');
       renderRates(MOCK_RATES);
     }
-    // Otherwise keep whatever is on screen
   }
 }
 
@@ -623,12 +625,14 @@ async function fetchGold() {
   try {
     const res = await fetch(CONFIG.API_BASE + '/gold');
     const data = await res.json();
-    console.log('[Norex TV] Raw /gold response:', data);
+    const json = JSON.stringify(data);
+    if (json === lastGoldJson) return; // no change, skip render
+    lastGoldJson = json;
+    console.log('[Norex TV] Gold changed, updating display');
     renderGold(data);
   } catch (err) {
     console.error('[Norex TV] Failed to fetch gold, using last data or mock:', err);
     if (document.getElementById('gold-container').children.length === 0) {
-      console.log('[Norex TV] Using mock gold data');
       renderGold(MOCK_GOLD);
     }
   }
