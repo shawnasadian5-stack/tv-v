@@ -367,6 +367,10 @@
 const CONFIG = {
   API_BASE: 'https://norexexchange.ca/wp-json/norex/v1',
   REFRESH_INTERVAL_MS: 10000, // 10 seconds
+  REQUEST_TIMEOUT_MS: 8000, // stop a stalled request before the next poll
+  STALE_RELOAD_AFTER_MS: 5 * 60 * 1000, // recover after 5 minutes without rates
+  PAGE_RELOAD_INTERVAL_MS: 6 * 60 * 60 * 1000, // refresh the kiosk page every 6 hours
+  WATCHDOG_INTERVAL_MS: 30000,
   SHOW_CURRENCIES: null,        // null = show all; or ['CAD', 'USD', 'EUR'] to filter & order
   SHOW_GOLD: true,
   GOLD_ITEMS_TO_SHOW: ['1 ounce gold bar', '5 ounce gold bar'],
@@ -379,6 +383,11 @@ let prevRatePrices = {};
 let prevGoldPrices = {};
 let lastRatesJson = '';
 let lastGoldJson = '';
+let refreshTimerId = null;
+let refreshInProgress = false;
+let reloadInProgress = false;
+let lastSuccessfulRatesFetchAt = Date.now();
+const pageLoadedAt = Date.now();
 
 // ─── Fallback mock data (real API structure) ───
 const MOCK_RATES = {
@@ -604,47 +613,124 @@ function renderGold(data) {
 // domain (norexexchange.ca) or if the API allows the requesting origin.
 // For local testing, use a CORS-disabling browser flag or a proxy.
 
+async function fetchJson(path) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), CONFIG.REQUEST_TIMEOUT_MS);
+  const url = new URL(CONFIG.API_BASE + path);
+
+  // Use both browser cache control and a unique URL so every poll reaches the API.
+  url.searchParams.set('_', Date.now().toString());
+
+  try {
+    const res = await fetch(url.toString(), {
+      cache: 'no-store',
+      headers: { Accept: 'application/json' },
+      signal: controller.signal,
+    });
+
+    if (!res.ok) {
+      throw new Error(`API request failed with status ${res.status}`);
+    }
+
+    return await res.json();
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 async function fetchRates() {
   try {
-    const res = await fetch(CONFIG.API_BASE + '/rates');
-    const data = await res.json();
+    const data = await fetchJson('/rates');
     const json = JSON.stringify(data);
-    if (json === lastRatesJson) return; // no change, skip render
+    lastSuccessfulRatesFetchAt = Date.now();
+    if (json === lastRatesJson) return true; // no change, skip render
     lastRatesJson = json;
     console.log('[Norex TV] Rates changed, updating display');
     renderRates(data);
+    return true;
   } catch (err) {
     console.error('[Norex TV] Failed to fetch rates, using last data or mock:', err);
     if (document.getElementById('rates-container').children.length === 0) {
       renderRates(MOCK_RATES);
     }
+    return false;
   }
 }
 
 async function fetchGold() {
   try {
-    const res = await fetch(CONFIG.API_BASE + '/gold');
-    const data = await res.json();
+    const data = await fetchJson('/gold');
     const json = JSON.stringify(data);
-    if (json === lastGoldJson) return; // no change, skip render
+    if (json === lastGoldJson) return true; // no change, skip render
     lastGoldJson = json;
     console.log('[Norex TV] Gold changed, updating display');
     renderGold(data);
+    return true;
   } catch (err) {
     console.error('[Norex TV] Failed to fetch gold, using last data or mock:', err);
     if (document.getElementById('gold-container').children.length === 0) {
       renderGold(MOCK_GOLD);
     }
+    return false;
   }
 }
 
 async function refreshAll() {
-  await Promise.all([fetchRates(), fetchGold()]);
+  if (refreshInProgress) return;
+
+  refreshInProgress = true;
+  try {
+    await Promise.all([fetchRates(), fetchGold()]);
+  } finally {
+    refreshInProgress = false;
+  }
+}
+
+function scheduleNextRefresh(delay = CONFIG.REFRESH_INTERVAL_MS) {
+  clearTimeout(refreshTimerId);
+  refreshTimerId = setTimeout(runRefreshCycle, delay);
+}
+
+async function runRefreshCycle() {
+  try {
+    await refreshAll();
+  } finally {
+    scheduleNextRefresh();
+  }
+}
+
+function requestImmediateRefresh() {
+  scheduleNextRefresh(0);
+}
+
+function reloadWithFreshPage() {
+  if (reloadInProgress) return;
+  reloadInProgress = true;
+
+  const url = new URL(window.location.href);
+  url.searchParams.set('_reload', Date.now().toString());
+  window.location.replace(url.toString());
+}
+
+function runWatchdog() {
+  const now = Date.now();
+  const ratesAreStale = now - lastSuccessfulRatesFetchAt >= CONFIG.STALE_RELOAD_AFTER_MS;
+  const pageReloadIsDue = now - pageLoadedAt >= CONFIG.PAGE_RELOAD_INTERVAL_MS;
+
+  if (ratesAreStale || pageReloadIsDue) {
+    reloadWithFreshPage();
+  }
 }
 
 // ─── Init ───
-refreshAll();
-setInterval(refreshAll, CONFIG.REFRESH_INTERVAL_MS);
+window.addEventListener('online', requestImmediateRefresh);
+window.addEventListener('pageshow', requestImmediateRefresh);
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) requestImmediateRefresh();
+});
+
+runRefreshCycle();
+setInterval(runWatchdog, CONFIG.WATCHDOG_INTERVAL_MS);
 </script>
 </body>
 </html>
