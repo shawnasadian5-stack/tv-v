@@ -367,8 +367,6 @@
 const CONFIG = {
   API_BASE: 'https://norexexchange.ca/wp-json/norex/v1',
   REFRESH_INTERVAL_MS: 10000, // 10 seconds
-  REQUEST_TIMEOUT_MS: 8000, // stop a stalled request before the next poll
-  PAGE_RELOAD_INTERVAL_MS: 60 * 1000, // temporary test: refresh the kiosk page every minute
   SHOW_CURRENCIES: null,        // null = show all; or ['CAD', 'USD', 'EUR'] to filter & order
   SHOW_GOLD: true,
   GOLD_ITEMS_TO_SHOW: ['1 ounce gold bar', '5 ounce gold bar'],
@@ -606,30 +604,10 @@ function renderGold(data) {
 // domain (norexexchange.ca) or if the API allows the requesting origin.
 // For local testing, use a CORS-disabling browser flag or a proxy.
 
-async function fetchJson(path) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), CONFIG.REQUEST_TIMEOUT_MS);
-
-  try {
-    const res = await fetch(CONFIG.API_BASE + path, {
-      cache: 'no-store',
-      headers: { Accept: 'application/json' },
-      signal: controller.signal,
-    });
-
-    if (!res.ok) {
-      throw new Error(`API request failed with status ${res.status}`);
-    }
-
-    return await res.json();
-  } finally {
-    clearTimeout(timeoutId);
-  }
-}
-
 async function fetchRates() {
   try {
-    const data = await fetchJson('/rates');
+    const res = await fetch(CONFIG.API_BASE + '/rates');
+    const data = await res.json();
     const json = JSON.stringify(data);
     if (json === lastRatesJson) return; // no change, skip render
     lastRatesJson = json;
@@ -645,7 +623,8 @@ async function fetchRates() {
 
 async function fetchGold() {
   try {
-    const data = await fetchJson('/gold');
+    const res = await fetch(CONFIG.API_BASE + '/gold');
+    const data = await res.json();
     const json = JSON.stringify(data);
     if (json === lastGoldJson) return; // no change, skip render
     lastGoldJson = json;
@@ -659,24 +638,13 @@ async function fetchGold() {
   }
 }
 
-async function runRefreshCycle() {
-  try {
-    await Promise.all([fetchRates(), fetchGold()]);
-  } finally {
-    // Schedule after completion so slow requests can never overlap the next poll.
-    setTimeout(runRefreshCycle, CONFIG.REFRESH_INTERVAL_MS);
-  }
-}
-
-function reloadWithFreshPage() {
-  const url = new URL(window.location.href);
-  url.searchParams.set('_reload', Date.now().toString());
-  window.location.replace(url.toString());
+async function refreshAll() {
+  await Promise.all([fetchRates(), fetchGold()]);
 }
 
 // ─── Init ───
-runRefreshCycle();
-setTimeout(reloadWithFreshPage, CONFIG.PAGE_RELOAD_INTERVAL_MS);
+refreshAll();
+setInterval(refreshAll, CONFIG.REFRESH_INTERVAL_MS);
 </script>
 </body>
 </html>
