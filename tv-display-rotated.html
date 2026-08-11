@@ -646,12 +646,12 @@ async function refreshAll() {
 refreshAll();
 setInterval(refreshAll, CONFIG.REFRESH_INTERVAL_MS);
 
-// Cache-busting page reload every minute for testing.
+// Cache-busting page reload every 30 seconds for testing.
 setTimeout(() => {
   const url = new URL(window.location.href);
   url.searchParams.set('_reload', Date.now().toString());
   window.location.replace(url.toString());
-}, 60 * 1000);
+}, 30 * 1000);
 </script>
 </body>
 </html>
