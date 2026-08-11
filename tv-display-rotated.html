@@ -368,7 +368,7 @@ const CONFIG = {
   API_BASE: 'https://norexexchange.ca/wp-json/norex/v1',
   REFRESH_INTERVAL_MS: 10000, // 10 seconds
   REQUEST_TIMEOUT_MS: 8000, // stop a stalled request before the next poll
-  PAGE_RELOAD_INTERVAL_MS: 6 * 60 * 60 * 1000, // refresh the kiosk page every 6 hours
+  PAGE_RELOAD_INTERVAL_MS: 60 * 1000, // temporary test: refresh the kiosk page every minute
   SHOW_CURRENCIES: null,        // null = show all; or ['CAD', 'USD', 'EUR'] to filter & order
   SHOW_GOLD: true,
   GOLD_ITEMS_TO_SHOW: ['1 ounce gold bar', '5 ounce gold bar'],
@@ -668,9 +668,15 @@ async function runRefreshCycle() {
   }
 }
 
+function reloadWithFreshPage() {
+  const url = new URL(window.location.href);
+  url.searchParams.set('_reload', Date.now().toString());
+  window.location.replace(url.toString());
+}
+
 // ─── Init ───
 runRefreshCycle();
-setTimeout(() => window.location.reload(), CONFIG.PAGE_RELOAD_INTERVAL_MS);
+setTimeout(reloadWithFreshPage, CONFIG.PAGE_RELOAD_INTERVAL_MS);
 </script>
 </body>
 </html>
