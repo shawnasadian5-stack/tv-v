@@ -645,13 +645,6 @@ async function refreshAll() {
 // ─── Init ───
 refreshAll();
 setInterval(refreshAll, CONFIG.REFRESH_INTERVAL_MS);
-
-// Cache-busting page reload every 12 hours.
-setTimeout(() => {
-  const url = new URL(window.location.href);
-  url.searchParams.set('_reload', Date.now().toString());
-  window.location.replace(url.toString());
-}, 12 * 60 * 60 * 1000);
 </script>
 </body>
 </html>
