@@ -4,10 +4,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Norex Exchange — Live Rates (Rotated)</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
+    @font-face {
+      font-family: 'Inter';
+      src: url('./assets/fonts/inter/InterVariable.woff2') format('woff2');
+      font-weight: 100 900;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'Vazirmatn';
+      src: url('./assets/fonts/vazirmatn/Vazirmatn-Variable.woff2') format('woff2');
+      font-weight: 100 900;
+      font-style: normal;
+      font-display: swap;
+    }
+
     *, *::before, *::after {
       margin: 0;
       padding: 0;
@@ -23,6 +36,10 @@
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
       -webkit-font-smoothing: antialiased;
       margin: 0;
+    }
+
+    [lang="fa"] {
+      font-family: 'Vazirmatn', 'Inter', sans-serif;
     }
 
     body {
@@ -139,10 +156,42 @@
     }
 
     .currency-flag {
-      font-size: 56px;
-      line-height: 1;
+      width: 60px;
+      height: 45px;
       min-width: 60px;
-      text-align: center;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .currency-flag-image {
+      display: block;
+      width: 60px;
+      height: 45px;
+      object-fit: cover;
+      border-radius: 5px;
+      box-shadow: 0 1px 3px #0a162833;
+    }
+
+    .currency-flag-image.currency-icon-round {
+      width: 45px;
+      object-fit: contain;
+      border-radius: 50%;
+      box-shadow: none;
+    }
+
+    .currency-code-badge {
+      width: 60px;
+      height: 45px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 5px;
+      background: #E7EBF0;
+      color: #0a1628;
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
     }
 
     .currency-details {
@@ -215,7 +264,9 @@
     }
 
     .gold-icon {
-      font-size: 36px;
+      width: 36px;
+      height: 36px;
+      display: block;
     }
 
     .gold-title {
@@ -306,6 +357,16 @@
       color: #0a1628;
       font-weight: 600;
       margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+    }
+
+    .footer-contact-icon {
+      width: 22px;
+      height: 22px;
+      display: block;
     }
 
     .footer-address {
@@ -329,7 +390,7 @@
   <div class="header">
     <img class="header-logo" src="https://norexexchange.ca/wp-content/uploads/2026/03/cropped-Untitled-design-39.png" alt="Norex Exchange Logo">
     <div class="header-title">Norex Exchange</div>
-    <div class="header-subtitle">صرافی نورکس</div>
+    <div class="header-subtitle" lang="fa" dir="rtl">صرافی نورکس</div>
     <div class="header-accent"></div>
   </div>
 
@@ -346,7 +407,7 @@
   <!-- Gold -->
   <div id="gold-section" class="gold-section" style="display:none;">
     <div class="gold-header">
-      <span class="gold-icon">🥇</span>
+      <img class="gold-icon" src="./assets/currency-icons/gold.svg" alt="">
       <span class="gold-title">Gold Prices</span>
     </div>
     <div id="gold-container"></div>
@@ -355,7 +416,7 @@
   <!-- Footer -->
   <div class="footer">
     <div class="footer-updated" id="last-updated">Last updated: —</div>
-    <div class="footer-contact">📞 +1 (778) 918-1817</div>
+    <div class="footer-contact"><img class="footer-contact-icon" src="./assets/currency-icons/phone.svg" alt="">+1 (778) 918-1817</div>
     <div class="footer-address">1061 Marine Drive, Suite 104, North Vancouver</div>
     <div class="footer-disclaimer">Prices are subject to change. Contact us for live rates.</div>
   </div>
@@ -372,6 +433,17 @@ const CONFIG = {
   GOLD_ITEMS_TO_SHOW: ['1 ounce gold bar', '5 ounce gold bar'],
   HIDE_ZERO_RATES: false,
   TMN_DISPLAY: 'تومان',
+};
+
+const CURRENCY_ICONS = {
+  CAD: { src: './assets/currency-icons/ca.svg', alt: 'Canada flag' },
+  USD: { src: './assets/currency-icons/us.svg', alt: 'United States flag' },
+  EUR: { src: './assets/currency-icons/eu.svg', alt: 'European Union flag' },
+  USDT: { src: './assets/currency-icons/usdt.svg', alt: 'Tether' },
+  MXN: { src: './assets/currency-icons/mx.svg', alt: 'Mexico flag' },
+  JPY: { src: './assets/currency-icons/jp.svg', alt: 'Japan flag' },
+  GBP: { src: './assets/currency-icons/gb.svg', alt: 'United Kingdom flag' },
+  JMD: { src: './assets/currency-icons/jm.svg', alt: 'Jamaica flag' },
 };
 
 // ─── Previous prices for change detection ───
@@ -431,6 +503,18 @@ function displayUnit(priceUnit) {
   return priceUnit ? priceUnit.toUpperCase() : '';
 }
 
+function renderCurrencyIcon(currencyCode) {
+  const code = String(currencyCode || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  const icon = CURRENCY_ICONS[code];
+
+  if (icon) {
+    const roundClass = code === 'USDT' ? ' currency-icon-round' : '';
+    return `<img class="currency-flag-image${roundClass}" src="${icon.src}" alt="${icon.alt}">`;
+  }
+
+  return `<span class="currency-code-badge" aria-label="${code || 'Currency'}">${code.slice(0, 4) || '?'}</span>`;
+}
+
 function isZero(val) {
   if (!val) return true;
   const n = parseFloat(val);
@@ -481,26 +565,30 @@ function renderRates(data) {
     el.className = 'rate-card ' + (i % 2 === 0 ? 'even' : 'odd');
 
     const unit = displayUnit(card.price_unit);
+    const unitLanguage = card.price_unit === 'toman' ? ' lang="fa" dir="rtl"' : ' lang="en"';
+    const hasPersianName = Boolean(card.name_fa);
+    const currencyName = hasPersianName ? card.name_fa : card.name_en;
+    const nameLanguage = hasPersianName ? ' lang="fa" dir="rtl"' : ' lang="en"';
 
     const tomanClass = card.price_unit === 'toman' ? ' price-toman' : '';
     let buyHtml, sellHtml;
     if (card.show_contact_buy) {
       buyHtml = `<span class="price-call">Ask Us</span>`;
     } else {
-      buyHtml = `<span class="price-value${tomanClass}">${formatNumber(card.buy_price, 'buy')}</span><span class="price-unit">${unit}</span>`;
+      buyHtml = `<span class="price-value${tomanClass}">${formatNumber(card.buy_price, 'buy')}</span><span class="price-unit"${unitLanguage}>${unit}</span>`;
     }
     if (card.show_contact_sell) {
       sellHtml = `<span class="price-call">Ask Us</span>`;
     } else {
-      sellHtml = `<span class="price-value${tomanClass}">${formatNumber(card.sell_price, 'sell')}</span><span class="price-unit">${unit}</span>`;
+      sellHtml = `<span class="price-value${tomanClass}">${formatNumber(card.sell_price, 'sell')}</span><span class="price-unit"${unitLanguage}>${unit}</span>`;
     }
 
     el.innerHTML = `
       <div class="currency-info">
-        <span class="currency-flag">${card.flag || ''}</span>
+        <span class="currency-flag">${renderCurrencyIcon(card.currency_code)}</span>
         <div class="currency-details">
           <span class="currency-code">${card.currency_code}</span>
-          <span class="currency-name">${card.name_fa || card.name_en}</span>
+          <span class="currency-name"${nameLanguage}>${currencyName}</span>
         </div>
       </div>
       <div class="price-cell">${buyHtml}</div>
@@ -578,7 +666,7 @@ function renderGold(data) {
     el.innerHTML = `
       <div class="gold-name">
         <span class="gold-name-en">${card.name_en}</span>
-        <span class="gold-name-fa">${card.name_fa || ''}</span>
+        <span class="gold-name-fa" lang="fa" dir="rtl">${card.name_fa || ''}</span>
       </div>
       <div class="gold-price-cell">${buyHtml}</div>
       <div class="gold-price-cell">${sellHtml}</div>
